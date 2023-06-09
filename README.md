@@ -1,6 +1,6 @@
 # GrearRolledOne
 
-<small>Philip Pham, Linh Phan, Quan Nguyen, Todd Neller</small>
+By: <small>Philip Pham, Linh Phan, Quan Nguyen, Todd Neller</small>
 
 ## Table of contents
 1.
