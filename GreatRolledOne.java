@@ -11,23 +11,32 @@ public class GreatRolledOne {
 	final int NUM_DICES = 5; 
 	final int COEFFICENT = 2;
 
+	/**
+	 * Constructor of GreatRolledOne class
+	 * @param goal
+	 * @param epsilon
+	 */
 	public GreatRolledOne(int goal, double epsilon) {
 		this.goal = goal;
 		this.maxScore = COEFFICENT * goal;
 		this.epsilon = epsilon;
-		roll = new Boolean[goal][goal][goal];
-		pExceed = new double[maxScore + 1][3];
-		pRollOutcome = new Double[NUM_DICES + 1][NUM_DICES + 1];
-		//compute winning probabilies
-		probOneRolled();
+		roll = new Boolean[goal][goal][goal];	// why 3 dims
+		pExceed = new double[maxScore + 1][3];	// why 2 dims
+		pRollOutcome = new Double[NUM_DICES + 1][NUM_DICES + 1];	// why 2 dims
+		//compute winning probabilities
+		pOneRolled();
 		computepExceed();
 	}
 
-	private void probOneRolled() {
+	/**
+	 * Calculate prob that one is rolled???
+	 */
+	private void pOneRolled() {
+		// initialize pRollOutcome with 1.0
 		Arrays.fill(pRollOutcome[0], 1.0);
-		for (int dices = 1; dices <= NUM_DICES; dices++) {
-			for (int one = 0; one <= dices; one++) {
-				rollDice(dices, one);
+		for (int dice = 1; dice <= NUM_DICES; dice++) {
+			for (int one = 0; one <= dice; one++) {
+				rollDice(dice, one);
 			}
 		}
 		for (Double[] outcome : pRollOutcome) {
@@ -35,43 +44,56 @@ public class GreatRolledOne {
 		}
 	}
 
-	private double rollDice(int dicesLeft, int numOnes) {
-		if (dicesLeft == 0 && numOnes == 0) {
-			pRollOutcome[dicesLeft][numOnes] = 1.0;
+	/**
+	 * This func do sth
+	 * @param diceLeft
+	 * @param numOnes
+	 * @return
+	 */
+	private double rollDice(int diceLeft, int numOnes) {
+		// Case: 
+		if (diceLeft == 0 && numOnes == 0) {
+			pRollOutcome[diceLeft][numOnes] = 1.0;
 		}
-		if (pRollOutcome[dicesLeft][numOnes] == null) {
-			pRollOutcome[dicesLeft][numOnes] = 0.0;
+		// Case:
+		if (pRollOutcome[diceLeft][numOnes] == null) {
+			pRollOutcome[diceLeft][numOnes] = 0.0;
+			// Case:
 			if (numOnes > 0) {
-				pRollOutcome[dicesLeft][numOnes] += (double)1 / 6 * rollDice(dicesLeft - 1, numOnes - 1);
+				pRollOutcome[diceLeft][numOnes] += (double)1 / 6 * rollDice(diceLeft - 1, numOnes - 1);
 			}
-			if (numOnes < dicesLeft) {
-				pRollOutcome[dicesLeft][numOnes] += (double)5 / 6 * rollDice(dicesLeft - 1, numOnes);
+			// Case:
+			if (numOnes < diceLeft) {
+				pRollOutcome[diceLeft][numOnes] += (double)5 / 6 * rollDice(diceLeft - 1, numOnes);
 			}
 		}
-		return pRollOutcome[dicesLeft][numOnes];
+		return pRollOutcome[diceLeft][numOnes];
 	}
-
+	
+	/**
+	 * computepExceed do sth
+	 */
 	private void computepExceed() {
 		//base case is when the score difference is 0
-		for (int o = 2; o >= 0; --o) {
-			int diceLeft = NUM_DICES - o;
+		for (int ones = 2; ones >= 0; --ones) {
+			int diceLeft = NUM_DICES - ones;
+			// ??
 			for (int scoreDiff = 0; scoreDiff <= maxScore; ++scoreDiff) {
-				for (int newO = 0; newO < 3 - o; ++newO) {
-					int point = diceLeft - newO;
-
-					if (point <= scoreDiff) { // in-bound case
-						// get the probability of ones roll given dice left
-						pExceed[scoreDiff][o] += pRollOutcome[diceLeft][newO] * 
-								pExceed[scoreDiff - point][newO + o];
+				for (int newOnes = 0; newOnes < 3 - ones; ++newOnes) {
+					int point = diceLeft - newOnes;
+					// Case: in-bound
+					if (point <= scoreDiff) {
+						// get the probability of ones rolled given dice left
+						pExceed[scoreDiff][ones] += pRollOutcome[diceLeft][newOnes] * 
+								pExceed[scoreDiff - point][newOnes + ones];
 					}
 					else {
-						pExceed[scoreDiff][o] += pRollOutcome[diceLeft][newO];
+						pExceed[scoreDiff][ones] += pRollOutcome[diceLeft][newOnes];
 					}
 				}
 			}
 		}
 		System.out.println(Arrays.deepToString(pExceed));
-
 	}
 
 	public static void main(String[]args) {
