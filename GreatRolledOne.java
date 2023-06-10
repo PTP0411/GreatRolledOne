@@ -98,6 +98,13 @@ public class GreatRolledOne {
 	
 	/**
 	 * 
+	 */
+	public void valueIterate() {
+		
+	}
+	
+	/**
+	 * 
 	 * @param i: player score
 	 * @param j: opponent score
 	 * @param k: current turn total
