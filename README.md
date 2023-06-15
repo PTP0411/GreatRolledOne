@@ -8,6 +8,8 @@ By: <small>Philip Pham, Linh Phan, Quan Nguyen, Todd Neller</small>
 
 ## Contents
 
-![](graph1.png)
-Fig. 1: rollDice
+![](assets/graph1.png)
+Fig. 1: compute pRollOutcome guide
 
+![](assets/graph2.png)
+Fig. 2: valueIteration function for pRoll

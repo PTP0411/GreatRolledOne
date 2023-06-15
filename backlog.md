@@ -1,5 +1,15 @@
 # GrearRolledOne backlog
 
+## June 15 2023 (whole group)
+* Working on `valueIteration()`
+* Action Items:
+    * Todd: Possible experimentation with approximately optimal policies
+    * Quan, Phong, Linh: Compute optimal play for GRO in advance of the meeting and share results
+* Advance (based on prob of winning after `valueIteration`):
+    * Which player has a starting disadvantage
+    * How points should they start with ("komi" = compensation points) in order to have as fair a game as possible?
+
+
 ## June 9 2023 (small group)
 * Try to deal with question: "What is the probability of the first player winning at the beginning of the game?"
 * Reference on Pig Game:
