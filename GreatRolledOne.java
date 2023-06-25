@@ -3,14 +3,15 @@ import java.util.Arrays;
 
 public class GreatRolledOne {
 	int goal;
-	Double[][] pRollOutcome; // [num_dice_rolled][num_ones_rolled]
+	Double[][] pRollOutcome; // [num_dice_left][num_ones_rolled]
 	double[][] pExceed; // [score_diff][num_ones_rolled]
-	Boolean[][][][] isRoll; //[curr_score][oppo_score][num_ones_rolled][turn_total]
-	double[][][][] pWin;	// [curr_score][oppo_score][num_ones_rolled][turn_total]
+	Boolean[][][][][] isRoll; //[curr_score][oppo_score][num_ones_rolled][turn_total][isFirstPlayer]
+	double[][][][][] pWin;	// [curr_score][oppo_score][num_ones_rolled][turn_total][isFirstPlayer]
 	double epsilon;
 	int maxScore; //score that player 1 will not exceed
-	final int NUM_DICE = 5; 
-	final int COEFFICENT = 2;	
+	final int NUM_DICE = 5;
+	final int COEFFICENT = 2;
+	final int FIRST_PLAYER = 0, SEC_PLAYER = 1;
 
 	/**
 	 * Constructor of GreatRolledOne class
@@ -23,8 +24,8 @@ public class GreatRolledOne {
 		this.epsilon = epsilon;
 		pExceed = new double[maxScore + 1][3];
 		pRollOutcome = new Double[NUM_DICE + 1][NUM_DICE + 1];
-		isRoll = new Boolean[goal][goal][3][goal];
-		pWin = new double[goal][goal][3][goal];
+		isRoll = new Boolean[goal][goal][3][goal][1];
+		pWin = new double[goal][goal][3][goal][1];
 		//compute winning probabilities
 		pOneRolled();
 		computepExceed();
@@ -113,32 +114,36 @@ public class GreatRolledOne {
 					for (int onesRolled = 0; onesRolled < 3; onesRolled++) {
 						// for each case of turn total
 						for (int k = 0; k < goal - i; k++) {
-							int diceLeft = NUM_DICE - onesRolled;
-    						// save old probability
-        					double oldProb = pWin[i][j][onesRolled][k];
-        					// compute probability should hold = 1 - probability opponent wins if player holds
-        					double pHold = 1.0 - computeProbWin(j, i + k, onesRolled, 0);
-        					// compute probability should roll
-        					double pRoll = 0.0;
-        					for (int newOnes = 0; newOnes <= diceLeft; newOnes++) {
-        						// probability of rolling new ones given current number of dice
-        						double pRollOne = pRollOutcome[diceLeft][newOnes];
-        						// if total ones >= 3, lose all points, player's turn ends
-        						if (onesRolled + newOnes >= 3) {
-        							// p = probability opponent wins when player earns = 0
-        							pRoll += pRollOne*(1.0 - computeProbWin(j, i, onesRolled, 0));
-        						}
-        						else {
-        							// p = probability player wins when player earns = k + this turn scores
-        							int turnScore = diceLeft - newOnes;
-        							pRoll += pRollOne*(computeProbWin(i, j, onesRolled, k + turnScore));
-        						}
-        					}
-        					// update values
-        					pWin[i][j][onesRolled][k] = Math.max(pRoll, pHold);
-        					isRoll[i][j][onesRolled][k] = pRoll > pHold;
-        					double currChange = Math.abs(pWin[i][j][onesRolled][k] - oldProb);
-        					maxChange = Math.max(maxChange, currChange);
+							// for each case is 1st player or 2nd player
+							for (int l=0; l<=1; l++) {
+								// calculate number of dice left after rolling ones
+								int diceLeft = NUM_DICE - onesRolled;
+								// save old probability
+								double oldProb = pWin[i][j][onesRolled][k][l];
+								// compute probability should hold = 1 - probability opponent wins if player holds
+								double pHold = 1.0 - computeProbWin(j, i + k, onesRolled, 0, l);
+								// compute probability should roll
+								double pRoll = 0.0;
+								for (int newOnes = 0; newOnes <= diceLeft; newOnes++) {
+									// probability of rolling new ones given current number of dice
+									double pRollOne = pRollOutcome[diceLeft][newOnes];
+									// if total ones >= 3, lose all points, player's turn ends
+									if (onesRolled + newOnes >= 3) {
+										// p = probability opponent wins when player earns = 0
+										pRoll += pRollOne*(1.0 - computeProbWin(j, i, onesRolled, 0, l));
+									}
+									else {
+										// p = probability player wins when player earns = k + this turn scores
+										int turnScore = diceLeft - newOnes;
+										pRoll += pRollOne*(computeProbWin(i, j, onesRolled, k + turnScore, l));
+									}
+								}
+								// update values
+								pWin[i][j][onesRolled][k][l] = Math.max(pRoll, pHold);
+								isRoll[i][j][onesRolled][k][l] = pRoll > pHold;
+								double currChange = Math.abs(pWin[i][j][onesRolled][k][l] - oldProb);
+								maxChange = Math.max(maxChange, currChange);
+							}
     					}
     					
     				}
@@ -154,15 +159,32 @@ public class GreatRolledOne {
 	 * @param j: opponent score
 	 * @param onesRolled: number of ones rolled so far
 	 * @param k: current turn total
+	 * @param l: is current player the first player
 	 * @return probability of winning
 	 */
-	public double computeProbWin(int i, int j, int onesRolled, int k) {
-		// Baseline, need modify to fit this problem
-		if (i + k >= goal)
-	        return 1.0;
-	    else if (j >= goal)
-	        return 0.0;
-	    else return pWin[i][j][onesRolled][k];
+	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
+		int currPlayerTotal = i + k;
+		int score_diff = Math.abs(currPlayerTotal - j);
+		if (currPlayerTotal > goal || j > goal) {
+			if (currPlayerTotal >= goal) {
+				double p2Exceed = pExceed[score_diff][0];
+				if (l == FIRST_PLAYER) {
+					return 1.0 - p2Exceed;
+				}
+				else {
+					if (currPlayerTotal > j) {return 1.0;}
+					else {return 0.0;}
+				}
+			}
+			else {	// (j >= goal)
+				double p1Exceed = pExceed[score_diff][0];
+				if (l == FIRST_PLAYER) {return 0.0;}
+				else {return p1Exceed;}
+			}
+		}
+		else {
+			return pWin[i][j][onesRolled][k][l];
+		}
 	}
 
 	/**
@@ -171,15 +193,31 @@ public class GreatRolledOne {
 	 * @param j: opponent score
 	 * @param onesRolled: number of ones rolled so far
 	 * @param k: current turn total
+	 * @param l: is first player's turn
 	 * @return whether player should roll or not
 	 */
-	public boolean shouldRoll(int i, int j, int onesRolled, int k) {
-    	return isRoll[i][j][onesRolled][k];
+	public boolean shouldRoll(int i, int j, int onesRolled, int k, int l) {
+    	return isRoll[i][j][onesRolled][k][l];
     }
 	
 	public static void main(String[]args) {
 		GreatRolledOne game = new GreatRolledOne(50, 1e-9);
 		game.valueIterate();
-		System.out.println(game.pWin[0][0][0][0]);
+		System.out.println(game.pWin[0][0][0][0][0]);
+		
+		// finding the state that game is fair
+//		int goal = 50;
+//		int limit = goal;
+//		for (int i = 0; i < limit; i++) {
+//			for (int j = 0; j < limit; j++) {
+//				for (int onesRolled = 0; onesRolled < 3; onesRolled++) {
+//					for (int k = 0; k < goal - i; k++) {
+//						if (0.4 < game.pWin[i][j][onesRolled][k] && game.pWin[0][0][0][0] < 0.8) {
+//							System.out.println(i + " " + j + " " + onesRolled + " " + k);
+//						}
+//					}
+//				}
+//			}
+//		}
 	}
 }

@@ -1,5 +1,14 @@
 # GrearRolledOne backlog
 
+## June 24 2023 (small group)
+* Work on `computeProbWin`
+    * This func still needs some more modifications
+* Future work:
+    * Modify `valueIterate` according to `computeProbWin`, using just 5 loops
+
+## June 22 2023 (whole group)
+* Prof Neller found errors in implementation, `pWin` and `isRoll` should have 5 dimensions (missing is First Player's turn)
+
 ## June 15 2023 (whole group)
 * Working on `valueIteration()`
 * Action Items:
