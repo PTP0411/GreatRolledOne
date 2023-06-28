@@ -121,7 +121,7 @@ public class GreatRolledOne {
 								// save old probability
 								double oldProb = pWin[i][j][onesRolled][k][l];
 								// compute probability should hold = 1 - probability opponent wins if player holds
-								double pHold = 1.0 - computeProbWin(j, i + k, onesRolled, 0, l);
+								double pHold = 1.0 - computeProbWin(j, i + k, onesRolled, 0, l); // we need to switch player here?
 								// compute probability should roll
 								double pRoll = 0.0;
 								for (int newOnes = 0; newOnes <= diceLeft; newOnes++) {
@@ -130,7 +130,7 @@ public class GreatRolledOne {
 									// if total ones >= 3, lose all points, player's turn ends
 									if (onesRolled + newOnes >= 3) {
 										// p = probability opponent wins when player earns = 0
-										pRoll += pRollOne*(1.0 - computeProbWin(j, i, onesRolled, 0, l));
+										pRoll += pRollOne*(1.0 - computeProbWin(j, i, onesRolled, 0, l)); // we need to switch player here?
 									}
 									else {
 										// p = probability player wins when player earns = k + this turn scores
@@ -163,6 +163,7 @@ public class GreatRolledOne {
 	 * @return probability of winning
 	 */
 	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
+		// Only handle edge case, case that can be out of bound, the rest should be in pWin
 		int currPlayerTotal = i + k;
 		int score_diff = Math.abs(currPlayerTotal - j);
 		if (currPlayerTotal > goal || j > goal) {
