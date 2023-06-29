@@ -1,5 +1,10 @@
 # GrearRolledOne backlog
 
+## June 29 2023 (small group)
+* Continue on `computeProbWin` and `valueIterate`:
+    * `computeProbWin`: consider subcases: both < goal; 1 > goal & 2 < goal; 1 < goal & 2 > goal; and both > goal
+    * `valueIterate`: change to `l = (l+1)%2` and `onesRolled = 0` when compute opponent's pWin
+
 ## June 24 2023 (small group)
 * Work on `computeProbWin`
     * This func still needs some more modifications
