@@ -163,52 +163,78 @@ public class GreatRolledOne {
 	 * @return probability of winning
 	 */
 	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
-		if (l == FIRST_PLAYER) {	// case currPlayer = 1st player
-			/* 
-			   	both < goal;
-				1 > goal & 2 < goal; -> include in valueIterate
-				1 < goal & 2 > goal;
-				both > goal
-			 */
-			if (j >= goal && i < goal) {	// 1 < goal & 2 > goal;
+		int currScore = i+k;
+		if (l == FIRST_PLAYER) {
+			if (currScore >= goal && j >= goal) { // Does this case happen since 2nd player's score>=goal -> game ends???
 				return 0.0;
 			}
-			else if (j >= goal && j < i) {	// both > goal
-				return 1.0;
+			else if (currScore >= goal && j < goal) {	// prob 2nd player exceeds currPlayer
+				return 1.0 - pExceed[currScore - j][0];
 			}
-			else {	// both < goal
+			else if (currScore < goal && j >= goal) { // Does this case happen since 2nd player's score>=goal -> game ends???
+				return 0.0;
+			}
+			else {
 				return pWin[i][j][onesRolled][k][l];
 			}
 		}
-		else {	// case currPlayer = 2nd player
-			/* 
-			   	both < goal;
-				1 > goal & 2 < goal;
-				1 < goal & 2 > goal;
-				both > goal
-			 */
-			if (i+k >= goal && j >= goal) {	// both > goal
-				if (i + k > j) {
-					return 1.0;
-				}
-				else if (i + k < j && onesRolled >= 3) {
-					return 0.0;
-				}
-				else {	// (i + k < j && onesRolled < 3)
-					return pWin[i][j][onesRolled][k][l];
-				}
+		else {
+			if (currScore >= goal && j >= goal) {
+				return currScore > j ? 1.0 : 0.0;
 			}
-			else if (i + k >= goal && j < goal) {	// 1 < goal & 2 > goal;
+			else if (currScore >= goal && j < goal) {
 				return 1.0;
 			}
-			else if (i + k < goal && j >= goal) {	// 1 > goal & 2 < goal;
-				return pExceed[j - (i+k)][onesRolled];
+			else if (currScore < goal && j >= goal) {
+				return pExceed[j - currScore][onesRolled];
 			}
-			else {	// both < goal
+			else {
 				return pWin[i][j][onesRolled][k][l];
 			}
 		}
 	}
+	
+//	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
+//		/* 
+//		   	both < goal;
+//			1 > goal & 2 < goal; -> include in valueIterate
+//			1 < goal & 2 > goal;
+//			both > goal
+//		 */
+//		if (l == FIRST_PLAYER) {	// case currPlayer = 1st player
+//			if (j >= goal && i < goal) {	// 1 < goal & 2 > goal;
+//				return 0.0;
+//			}
+//			else if (j >= goal && j < i) {	// both > goal
+//				return 1.0;
+//			}
+//			else {	// both < goal
+//				return pWin[i][j][onesRolled][k][l];
+//			}
+//		}
+//		else {	// case currPlayer = 2nd player
+//			if (i+k >= goal && j >= goal) {	// both > goal
+//				if (i + k > j) {
+//					return 1.0;
+//				}
+//				else if (i + k < j && onesRolled >= 3) {
+//					return 0.0;
+//				}
+//				else {	// (i + k < j && onesRolled < 3)
+//					return pWin[i][j][onesRolled][k][l];
+//				}
+//			}
+//			else if (i + k >= goal && j < goal) {	// 1 < goal & 2 > goal;
+//				return 1.0;
+//			}
+//			else if (i + k < goal && j >= goal) {	// 1 > goal & 2 < goal;
+//				return pExceed[j - (i+k)][onesRolled];
+//			}
+//			else {	// both < goal
+//				return pWin[i][j][onesRolled][k][l];
+//			}
+//		}
+//	}
 	
 	
 //	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
@@ -255,18 +281,29 @@ public class GreatRolledOne {
 		System.out.println(game.pWin[0][0][0][0][0]);
 		
 		// finding the state that game is fair
-//		int goal = 50;
-//		int limit = goal;
-//		for (int i = 0; i < limit; i++) {
-//			for (int j = 0; j < limit; j++) {
+		int goal = 50;
+		int limit = goal;
+		double dev = 0.01;
+		for (int i = 0; i < limit; i++) {
+			for (int j = 0; j < limit; j++) {
 //				for (int onesRolled = 0; onesRolled < 3; onesRolled++) {
 //					for (int k = 0; k < goal - i; k++) {
-//						if (0.4 < game.pWin[i][j][onesRolled][k] && game.pWin[0][0][0][0] < 0.8) {
-//							System.out.println(i + " " + j + " " + onesRolled + " " + k);
+//						for (int l = 0; l <= 1; l++) {
+						int onesRolled=0;
+						int k=0;
+						int l=0;	// first player
+							if (0.5-dev < game.pWin[i][j][onesRolled][k][l] && game.pWin[i][j][onesRolled][k][l] < 0.5+dev) {
+								System.out.println(game.pWin[i][j][onesRolled][k][l] 
+										+ ": i=" + i 
+										+ " j=" + j 
+										+ " o=" + onesRolled 
+										+ " k=" + k 
+										+ " l=" + l);
+							}
 //						}
 //					}
 //				}
-//			}
-//		}
+			}
+		}
 	}
 }
