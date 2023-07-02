@@ -1,5 +1,16 @@
 # GrearRolledOne backlog
 
+## July 1 2023 (small group)
+* Fix issue in `computeProbWin`:
+    * Prob is 0.42656903612236774
+    * States that game is fair given `onesRolled=0`; `k=0` (turn total=0); `l=0` (1st player):
+        ```python
+        0.5037387761862688: i=5 j=0 o=0 k=0 l=0
+        0.5036805756920554: i=6 j=1 o=0 k=0 l=0
+        0.5036858075317838: i=7 j=2 o=0 k=0 l=0
+        ...
+        ```
+
 ## June 29 2023 (small group)
 * Continue on `computeProbWin` and `valueIterate`:
     * `computeProbWin`: consider subcases: both < goal; 1 > goal & 2 < goal; 1 < goal & 2 > goal; and both > goal
