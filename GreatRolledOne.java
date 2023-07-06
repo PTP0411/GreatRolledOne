@@ -136,7 +136,7 @@ public class GreatRolledOnes {
 									for (int newOnes = 3 - onesRolled; newOnes <= NUM_DICE - onesRolled; newOnes++) {
 										// probability of rolling new ones given current number of dice
 										double pRollOne = pRollOutcome[diceLeft][newOnes];
-										pRoll += pRollOne * (1.0 - computeProbWin(j, i, 0, 0, (l + 1) % 2));
+										pRoll += pRollOne * computeProbWin(j, i, 0, 0, (l + 1) % 2);
 									}
 								}
 								double pHold = 0.0;
@@ -171,10 +171,7 @@ public class GreatRolledOnes {
 	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
 		int currScore = i + k;
 		if (l == FIRST_PLAYER) {
-			if (currScore >= maxScore && j >= goal) { // Does this case happen since 2nd player's score>=goal -> game ends???
-				return currScore >= j ? 1 : 0;
-			}
-			else if (currScore >= maxScore && j < currScore) {	// prob 2nd player exceeds currPlayer
+			if (currScore >= goal && j < goal) {	// prob 2nd player exceeds currPlayer
 				return 1.0 - pExceed[currScore - j][0];
 			}
 			else if (currScore < goal && j >= goal) { // Does this case happen since 2nd player's score>=goal -> game ends???
@@ -186,7 +183,7 @@ public class GreatRolledOnes {
 		}
 		else {
 			if (currScore >= goal && j >= goal) {
-				return currScore > j ? 1.0 : 0.0;
+				return currScore > j ? 1.0 : pExceed[j - currScore][onesRolled];
 			}
 			else if (currScore >= goal && j < goal) {
 				return 1.0;
