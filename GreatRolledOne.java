@@ -54,7 +54,7 @@ public class GreatRolledOne {
 	 * @return probability
 	 */
 	private double rollDice(int diceLeft, int numOnes) {
-		// Base Case 
+		// Base Case
 		if (diceLeft == 0 && numOnes == 0) {
 			pRollOutcome[diceLeft][numOnes] = 1.0;
 		}
@@ -107,9 +107,9 @@ public class GreatRolledOne {
 		do {
 			maxChange = 0.0;
 			// for each case of player's score
-			for (int i = 0; i < goal; i++) {
+			for (int i = 0; i < maxScore; i++) {
 				// for each case of opponent's score
-    			for (int j = 0; j < goal; j++) {
+    			for (int j = 0; j < maxScore; j++) {
     				// for each case of number of ones rolled
 					for (int onesRolled = 0; onesRolled < 3; onesRolled++) {
 						// for each case of turn total
@@ -127,8 +127,8 @@ public class GreatRolledOne {
 								int diceLeft = NUM_DICE - onesRolled;
 								// compute probability should roll
 								double pRoll = 0.0;
-								if (p == SEC_PLAYER) {
-									pRoll = (j-i < 0) ? 1.0 : pExceed[j-i][onesRolled];	// this will causes error
+								if (p == SEC_PLAYER && j >= goal) {
+									pRoll = pExceed[j-i][onesRolled];
 								}
 								else {
 									for (int newOnes = 0; newOnes <= 2-onesRolled; newOnes++) {
