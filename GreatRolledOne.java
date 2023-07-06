@@ -128,9 +128,10 @@ public class GreatRolledOnes {
 								else {
 									for (int newOnes = 0; newOnes <= 2 - onesRolled; newOnes++) {
 										// probability of rolling new ones given current number of dice
+										int ones = onesRolled + newOnes;
 										double pRollOne = pRollOutcome[diceLeft][newOnes];
 										
-										pRoll += pRollOne * (1.0 - computeProbWin(i, j, newOnes, k + NUM_DICE - newOnes, l));
+										pRoll += pRollOne * (1.0 - computeProbWin(i, j, ones, k + NUM_DICE - ones, l));
 									}
 									for (int newOnes = 3 - onesRolled; newOnes <= NUM_DICE - onesRolled; newOnes++) {
 										// probability of rolling new ones given current number of dice
@@ -311,3 +312,4 @@ public class GreatRolledOnes {
 //			}
 //		}
 	}
+}
