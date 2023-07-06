@@ -106,9 +106,9 @@ public class GreatRolledOnes {
 		do {
 			maxChange = 0.0;
 			// for each case of player's score
-			for (int i = 0; i < goal; i++) {
+			for (int i = 0; i < maxScore; i++) {
 				// for each case of opponent's score
-    			for (int j = 0; j < goal; j++) {
+    			for (int j = 0; j < maxScore; j++) {
     				// for each case of number of ones rolled
 					for (int onesRolled = 0; onesRolled < 3; onesRolled++) {
 						// for each case of turn total
@@ -120,27 +120,27 @@ public class GreatRolledOnes {
 								// save old probability
 								double oldProb = pWin[i][j][onesRolled][k][l];
 								// compute probability should hold = 1 - probability opponent wins if player holds
-								double pHold = 1.0 - computeProbWin(j, i + k, 0, 0, (l+1)%2);
 								// compute probability should roll
 								double pRoll = 0.0;
 								if (l == 1 && j >= 50) {
 									pRoll = pExceed[j - i][onesRolled];
 								}
 								else {
-									for (int newOnes = 0; newOnes <= diceLeft; newOnes++) {
+									for (int newOnes = 0; newOnes <= 2 - onesRolled; newOnes++) {
 										// probability of rolling new ones given current number of dice
 										double pRollOne = pRollOutcome[diceLeft][newOnes];
-										// if total ones >= 3, lose all points, player's turn ends
-										if (onesRolled + newOnes >= 3) {
-											// p = probability opponent wins when player earns = 0
-											pRoll += pRollOne*(1.0 - computeProbWin(j, i, 0, 0, (l+1)%2));
-										}
-										else {
-											// p = probability player wins when player earns = k + this turn scores
-											int turnScore = diceLeft - newOnes;
-											pRoll += pRollOne*(computeProbWin(i, j, newOnes, k + NUM_DICE - newOnes, l));
-										}
+										
+										pRoll += pRollOne * (1.0 - computeProbWin(i, j, newOnes, k + NUM_DICE - newOnes, l));
 									}
+									for (int newOnes = 3 - onesRolled; newOnes <= NUM_DICE - onesRolled; newOnes++) {
+										// probability of rolling new ones given current number of dice
+										double pRollOne = pRollOutcome[diceLeft][newOnes];
+										pRoll += pRollOne * (1.0 - computeProbWin(j, i, 0, 0, (l + 1) % 2));
+									}
+								}
+								double pHold = 0.0;
+								if (!(k == 0 || (l == SEC_PLAYER && j >= 50))) {
+									pHold = 1 - computeProbWin(j, i + k, 0, 0, (l + 1) % 2);
 								}
 								// update values
 								pWin[i][j][onesRolled][k][l] = Math.max(pRoll, pHold);
@@ -167,28 +167,13 @@ public class GreatRolledOnes {
 	 * @return probability of winning
 	 */
 	
-//	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
-//		if (l == SEC_PLAYER && j >= 50) {
-//			return pExceed[onesRolled][j - i];
-//		}
-//		
-//		double p1 = 0.0, p2 = 0.0;
-//		for (int n = 0; n <= 2 - onesRolled; n++) {
-//			p1 += pRollOutcome[5 - onesRolled][n] * pWin[i][j][onesRolled][k][l];
-//		}
-//		
-//		for (int n = 3 - onesRolled; n <= 5 - onesRolled; n++) {
-//			p2 += pRollOutcome[5 - onesRolled][n] * pWin[j][i][0][0][(l + 1) % 2];
-//		}
-//		return p1 + p2;
-//	}
 	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
-		int currScore = i+k;
+		int currScore = i + k;
 		if (l == FIRST_PLAYER) {
-			if (currScore >= goal && j >= goal) { // Does this case happen since 2nd player's score>=goal -> game ends???
-				return 0.0;
+			if (currScore >= maxScore && j >= goal) { // Does this case happen since 2nd player's score>=goal -> game ends???
+				return currScore >= j ? 1 : 0;
 			}
-			else if (currScore >= goal && j < goal) {	// prob 2nd player exceeds currPlayer
+			else if (currScore >= maxScore && j < currScore) {	// prob 2nd player exceeds currPlayer
 				return 1.0 - pExceed[currScore - j][0];
 			}
 			else if (currScore < goal && j >= goal) { // Does this case happen since 2nd player's score>=goal -> game ends???
@@ -326,4 +311,3 @@ public class GreatRolledOnes {
 //			}
 //		}
 	}
-}
