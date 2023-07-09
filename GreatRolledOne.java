@@ -1,11 +1,11 @@
 
 import java.util.Arrays;
 
-public class GreatRolledOne {
+public class GreatRolledOne implements GROPolicy {
 	int goal;
 	Double[][] pRollOutcome; // [num_dice_left][num_ones_rolled]
 	double[][] pExceed; // [score_diff][num_ones_rolled]
-	Boolean[][][][][] isRoll; //[curr_score][oppo_score][num_ones_rolled][turn_total][isFirstPlayer]
+	boolean [][][][][] isRoll; //[curr_score][oppo_score][num_ones_rolled][turn_total][isFirstPlayer]
 	double[][][][][] pWin;	// [curr_score][oppo_score][num_ones_rolled][turn_total][isFirstPlayer]
 	double epsilon;
 	int maxScore; //score that player 1 will not exceed
@@ -24,7 +24,7 @@ public class GreatRolledOne {
 		this.epsilon = epsilon;
 		pExceed = new double[maxScore + 1][3];
 		pRollOutcome = new Double[NUM_DICE + 1][NUM_DICE + 1];
-		isRoll = new Boolean[maxScore][maxScore][3][maxScore][2];
+		isRoll = new boolean[maxScore][maxScore][3][maxScore][2];
 		pWin = new double[maxScore][maxScore][3][maxScore][2];
 		//compute winning probabilities
 		pOneRolled();
@@ -113,22 +113,24 @@ public class GreatRolledOne {
     				// for each case of number of ones rolled
 					for (int onesRolled = 0; onesRolled < 3; onesRolled++) {
 						// for each case of turn total
-						for (int k = 0; k < goal - i; k++) {
+						for (int k = 0; k < maxScore - i; k++) { // *
 							// for each case is 1st player or 2nd player
 							for (int p = 0; p <= 1; p++) {
 								// save old probability
 								double oldProb = pWin[i][j][onesRolled][k][p];
 								// compute probability should hold
 								double pHold = 1.0 - computeProbWin(j, i + k, 0, 0, (p+1)%2);
-								if (k == 0 || (p == SEC_PLAYER && j >= goal && j >= i)) {
+								if (k == 0 || (p == SEC_PLAYER && j >= goal && j >= (i + k))) { // * 
 									pHold = 0.0;
 								}
+								if (p == 1 && j < goal && i + k >= goal) // *
+									pHold = 1.0; // *
 								// calculate number of dice left after rolling ones
 								int diceLeft = NUM_DICE - onesRolled;
 								// compute probability should roll
 								double pRoll = 0.0;
-								if (p == SEC_PLAYER && j >= goal) {
-									pRoll = pExceed[j-i][onesRolled];
+								if (p == SEC_PLAYER && j >= goal && i + k <= j) {  // *
+									pRoll = pExceed[j-(i+k)][onesRolled]; // *
 								}
 								else {
 									for (int newOnes = 0; newOnes <= 2-onesRolled; newOnes++) {
@@ -138,7 +140,7 @@ public class GreatRolledOne {
 									}
 									for (int newOnes = 3-onesRolled; newOnes <= diceLeft; newOnes++) {
 										pRoll += pRollOutcome[diceLeft][newOnes] 
-													* computeProbWin(j, i, 0, 0, (p+1)%2);
+													* (1 - computeProbWin(j, i, 0, 0, (p+1)%2)); // *
 									}
 								}
 								// update values
@@ -152,6 +154,7 @@ public class GreatRolledOne {
     				}
     			}
     		}
+			System.out.println(maxChange);
 		}
 		while (maxChange > this.epsilon);
 	}
@@ -166,15 +169,25 @@ public class GreatRolledOne {
 	 * @return probability of winning
 	 */
 	public double computeProbWin(int i, int j, int onesRolled, int k, int p) {
-		if (i+k >= maxScore) {
+		
+		if (p == 0 && i >= goal) // game end; note not i + k > goal; must have already held
+			return i >= j ? 1.0 : 0.0;
+		if (p == 1 && i + k >= goal && i + k > j)
 			return 1.0;
-		}
-		else if (j >= maxScore) {
-			return 0.0;
-		}
-		else {
-			return pWin[i][j][onesRolled][k][p];
-		}
+		// truncate scores/totals
+		if (i >= maxScore) i = maxScore - 1;
+		if (j >= maxScore) j = maxScore - 1;
+		if (i + k >= maxScore) k = maxScore - 1 - i;
+		return pWin[i][j][onesRolled][k][p];
+		
+//		if (i+k >= maxScore) {
+//			k = maxScore - i - 1;
+//		}
+//		if (j >= maxScore) {
+//			j = maxScore - 1;
+//		}
+//		
+//		return pWin[i][j][onesRolled][k][p];
 	}
 
 	/**
@@ -189,6 +202,11 @@ public class GreatRolledOne {
 	public boolean shouldRoll(int i, int j, int onesRolled, int k, int l) {
     	return isRoll[i][j][onesRolled][k][l];
     }
+	
+	@Override
+	public boolean willRoll(int p, int i, int j, int k, int o) {
+		return shouldRoll(i, j, o, k, p);
+	}
 	
 	public static void main(String[]args) {
 		GreatRolledOne game = new GreatRolledOne(50, 1e-14);
@@ -221,4 +239,5 @@ public class GreatRolledOne {
 //			}
 //		}
 	}
+
 }
