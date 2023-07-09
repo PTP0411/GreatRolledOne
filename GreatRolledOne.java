@@ -1,11 +1,11 @@
 
 import java.util.Arrays;
 
-public class GreatRolledOne {
+public class GreatRolledOne implements GROPolicy {
 	int goal;
 	Double[][] pRollOutcome; // [num_dice_left][num_ones_rolled]
 	double[][] pExceed; // [score_diff][num_ones_rolled]
-	Boolean[][][][][] isRoll; //[curr_score][oppo_score][num_ones_rolled][turn_total][isFirstPlayer]
+	boolean [][][][][] isRoll; //[curr_score][oppo_score][num_ones_rolled][turn_total][isFirstPlayer]
 	double[][][][][] pWin;	// [curr_score][oppo_score][num_ones_rolled][turn_total][isFirstPlayer]
 	double epsilon;
 	int maxScore; //score that player 1 will not exceed
@@ -24,7 +24,7 @@ public class GreatRolledOne {
 		this.epsilon = epsilon;
 		pExceed = new double[maxScore + 1][3];
 		pRollOutcome = new Double[NUM_DICE + 1][NUM_DICE + 1];
-		isRoll = new Boolean[maxScore][maxScore][3][maxScore][2];
+		isRoll = new boolean[maxScore][maxScore][3][maxScore][2];
 		pWin = new double[maxScore][maxScore][3][maxScore][2];
 		//compute winning probabilities
 		pOneRolled();
@@ -54,7 +54,7 @@ public class GreatRolledOne {
 	 * @return probability
 	 */
 	private double rollDice(int diceLeft, int numOnes) {
-		// Base Case 
+		// Base Case
 		if (diceLeft == 0 && numOnes == 0) {
 			pRollOutcome[diceLeft][numOnes] = 1.0;
 		}
@@ -107,41 +107,46 @@ public class GreatRolledOne {
 		do {
 			maxChange = 0.0;
 			// for each case of player's score
-			for (int i = 0; i < goal; i++) {
+			for (int i = 0; i < maxScore; i++) {
 				// for each case of opponent's score
-    			for (int j = 0; j < goal; j++) {
+    			for (int j = 0; j < maxScore; j++) {
     				// for each case of number of ones rolled
 					for (int onesRolled = 0; onesRolled < 3; onesRolled++) {
 						// for each case of turn total
-						for (int k = 0; k < goal - i; k++) {
+						for (int k = 0; k < maxScore - i; k++) { // *
 							// for each case is 1st player or 2nd player
-							for (int l=0; l<=1; l++) {
+							for (int p = 0; p <= 1; p++) {
+								// save old probability
+								double oldProb = pWin[i][j][onesRolled][k][p];
+								// compute probability should hold
+								double pHold = 1.0 - computeProbWin(j, i + k, 0, 0, (p+1)%2);
+								if (k == 0 || (p == SEC_PLAYER && j >= goal && j >= (i + k))) { // * 
+									pHold = 0.0;
+								}
+								if (p == 1 && j < goal && i + k >= goal) // *
+									pHold = 1.0; // *
 								// calculate number of dice left after rolling ones
 								int diceLeft = NUM_DICE - onesRolled;
-								// save old probability
-								double oldProb = pWin[i][j][onesRolled][k][l];
-								// compute probability should hold = 1 - probability opponent wins if player holds
-								double pHold = 1.0 - computeProbWin(j, i + k, 0, 0, (l+1)%2);
 								// compute probability should roll
 								double pRoll = 0.0;
-								for (int newOnes = 0; newOnes <= diceLeft; newOnes++) {
-									// probability of rolling new ones given current number of dice
-									double pRollOne = pRollOutcome[diceLeft][newOnes];
-									// if total ones >= 3, lose all points, player's turn ends
-									if (onesRolled + newOnes >= 3) {
-										// p = probability opponent wins when player earns = 0
-										pRoll += pRollOne*(1.0 - computeProbWin(j, i, 0, 0, (l+1)%2));
-									}
-									else {
-										// p = probability player wins when player earns = k + this turn scores
+								if (p == SEC_PLAYER && j >= goal && i + k <= j) {  // *
+									pRoll = pExceed[j-(i+k)][onesRolled]; // *
+								}
+								else {
+									for (int newOnes = 0; newOnes <= 2-onesRolled; newOnes++) {
 										int turnScore = diceLeft - newOnes;
-										pRoll += pRollOne*(computeProbWin(i, j, onesRolled+newOnes, k+turnScore, l));
+										pRoll += pRollOutcome[diceLeft][newOnes]
+													* computeProbWin(i, j, onesRolled + newOnes, k + turnScore, p);
+									}
+									for (int newOnes = 3-onesRolled; newOnes <= diceLeft; newOnes++) {
+										pRoll += pRollOutcome[diceLeft][newOnes] 
+													* (1 - computeProbWin(j, i, 0, 0, (p+1)%2)); // *
 									}
 								}
 								// update values
-								pWin[i][j][onesRolled][k][l] = Math.max(pRoll, pHold);
-								isRoll[i][j][onesRolled][k][l] = pRoll > pHold;
-								double currChange = Math.abs(pWin[i][j][onesRolled][k][l] - oldProb);
+								pWin[i][j][onesRolled][k][p] = Math.max(pRoll, pHold);
+								isRoll[i][j][onesRolled][k][p] = pRoll > pHold;
+								double currChange = Math.abs(pWin[i][j][onesRolled][k][p] - oldProb);
 								maxChange = Math.max(maxChange, currChange);
 							}
     					}
@@ -149,6 +154,7 @@ public class GreatRolledOne {
     				}
     			}
     		}
+			System.out.println(maxChange);
 		}
 		while (maxChange > this.epsilon);
 	}
@@ -162,105 +168,27 @@ public class GreatRolledOne {
 	 * @param l: is current player the first player
 	 * @return probability of winning
 	 */
-	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
-		int currScore = i+k;
-		if (l == FIRST_PLAYER) {
-			if (currScore >= goal && j >= goal) { // Does this case happen since 2nd player's score>=goal -> game ends???
-				return 0.0;
-			}
-			else if (currScore >= goal && j < goal) {	// prob 2nd player exceeds currPlayer
-				return 1.0 - pExceed[currScore - j][0];
-			}
-			else if (currScore < goal && j >= goal) { // Does this case happen since 2nd player's score>=goal -> game ends???
-				return 0.0;
-			}
-			else {
-				return pWin[i][j][onesRolled][k][l];
-			}
-		}
-		else {
-			if (currScore >= goal && j >= goal) {
-				return currScore > j ? 1.0 : 0.0;
-			}
-			else if (currScore >= goal && j < goal) {
-				return 1.0;
-			}
-			else if (currScore < goal && j >= goal) {
-				return pExceed[j - currScore][onesRolled];
-			}
-			else {
-				return pWin[i][j][onesRolled][k][l];
-			}
-		}
+	public double computeProbWin(int i, int j, int onesRolled, int k, int p) {
+		
+		if (p == 0 && i >= goal) // game end; note not i + k > goal; must have already held
+			return i >= j ? 1.0 : 0.0;
+		if (p == 1 && i + k >= goal && i + k > j)
+			return 1.0;
+		// truncate scores/totals
+		if (i >= maxScore) i = maxScore - 1;
+		if (j >= maxScore) j = maxScore - 1;
+		if (i + k >= maxScore) k = maxScore - 1 - i;
+		return pWin[i][j][onesRolled][k][p];
+		
+//		if (i+k >= maxScore) {
+//			k = maxScore - i - 1;
+//		}
+//		if (j >= maxScore) {
+//			j = maxScore - 1;
+//		}
+//		
+//		return pWin[i][j][onesRolled][k][p];
 	}
-	
-//	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
-//		/* 
-//		   	both < goal;
-//			1 > goal & 2 < goal; -> include in valueIterate
-//			1 < goal & 2 > goal;
-//			both > goal
-//		 */
-//		if (l == FIRST_PLAYER) {	// case currPlayer = 1st player
-//			if (j >= goal && i < goal) {	// 1 < goal & 2 > goal;
-//				return 0.0;
-//			}
-//			else if (j >= goal && j < i) {	// both > goal
-//				return 1.0;
-//			}
-//			else {	// both < goal
-//				return pWin[i][j][onesRolled][k][l];
-//			}
-//		}
-//		else {	// case currPlayer = 2nd player
-//			if (i+k >= goal && j >= goal) {	// both > goal
-//				if (i + k > j) {
-//					return 1.0;
-//				}
-//				else if (i + k < j && onesRolled >= 3) {
-//					return 0.0;
-//				}
-//				else {	// (i + k < j && onesRolled < 3)
-//					return pWin[i][j][onesRolled][k][l];
-//				}
-//			}
-//			else if (i + k >= goal && j < goal) {	// 1 < goal & 2 > goal;
-//				return 1.0;
-//			}
-//			else if (i + k < goal && j >= goal) {	// 1 > goal & 2 < goal;
-//				return pExceed[j - (i+k)][onesRolled];
-//			}
-//			else {	// both < goal
-//				return pWin[i][j][onesRolled][k][l];
-//			}
-//		}
-//	}
-	
-	
-//	public double computeProbWin(int i, int j, int onesRolled, int k, int l) {
-//		int currPlayerTotal = i + k;
-//		int score_diff = Math.abs(currPlayerTotal - j);
-//		if (currPlayerTotal > goal || j > goal) {
-//			if (currPlayerTotal >= goal) {
-//				double p2Exceed = pExceed[score_diff][0];
-//				if (l == FIRST_PLAYER) {
-//					return 1.0 - p2Exceed;
-//				}
-//				else {
-//					if (currPlayerTotal > j) {return 1.0;}
-//					else {return 0.0;}
-//				}
-//			}
-//			else {	// (j >= goal)
-//				double p1Exceed = pExceed[score_diff][0];
-//				if (l == FIRST_PLAYER) {return 0.0;}
-//				else {return p1Exceed;}
-//			}
-//		}
-//		else {
-//			return pWin[i][j][onesRolled][k][l];
-//		}
-//	}
 
 	/**
 	 * Determine whether player should roll or not
@@ -275,35 +203,41 @@ public class GreatRolledOne {
     	return isRoll[i][j][onesRolled][k][l];
     }
 	
+	@Override
+	public boolean willRoll(int p, int i, int j, int k, int o) {
+		return shouldRoll(i, j, o, k, p);
+	}
+	
 	public static void main(String[]args) {
-		GreatRolledOne game = new GreatRolledOne(50, 1e-9);
+		GreatRolledOne game = new GreatRolledOne(50, 1e-14);
 		game.valueIterate();
 		System.out.println(game.pWin[0][0][0][0][0]);
 		
 		// finding the state that game is fair
-		int goal = 50;
-		int limit = goal;
-		double dev = 0.01;
-		for (int i = 0; i < limit; i++) {
-			for (int j = 0; j < limit; j++) {
-//				for (int onesRolled = 0; onesRolled < 3; onesRolled++) {
-//					for (int k = 0; k < goal - i; k++) {
-//						for (int l = 0; l <= 1; l++) {
-						int onesRolled=0;
-						int k=0;
-						int l=0;	// first player
-							if (0.5-dev < game.pWin[i][j][onesRolled][k][l] && game.pWin[i][j][onesRolled][k][l] < 0.5+dev) {
-								System.out.println(game.pWin[i][j][onesRolled][k][l] 
-										+ ": i=" + i 
-										+ " j=" + j 
-										+ " o=" + onesRolled 
-										+ " k=" + k 
-										+ " l=" + l);
-							}
-//						}
-//					}
-//				}
-			}
-		}
+//		int goal = 50;
+//		int limit = goal;
+//		double dev = 0.01;
+//		for (int i = 0; i < limit; i++) {
+//			for (int j = 0; j < limit; j++) {
+////				for (int onesRolled = 0; onesRolled < 3; onesRolled++) {
+////					for (int k = 0; k < goal - i; k++) {
+////						for (int l = 0; l <= 1; l++) {
+//						int onesRolled=0;
+//						int k=0;
+//						int l=0;	// first player
+//							if (0.5-dev < game.pWin[i][j][onesRolled][k][l] && game.pWin[i][j][onesRolled][k][l] < 0.5+dev) {
+//								System.out.println(game.pWin[i][j][onesRolled][k][l] 
+//										+ ": i=" + i 
+//										+ " j=" + j 
+//										+ " o=" + onesRolled 
+//										+ " k=" + k 
+//										+ " l=" + l);
+//							}
+////						}
+////					}
+////				}
+//			}
+//		}
 	}
+
 }
