@@ -357,6 +357,26 @@ public class GreatRolledOnesSolver implements GROPolicy {
 //		}
 	}
 	
+	public void printRoll(int p, int k, int o) {
+		// print by p, k, o
+		StringBuilder sb = new StringBuilder(" ");
+//		pWin = new double[2][maxScore][maxScore][maxScore][3]; // indexed by player, score, opponent score, turn total, ones
+//		roll = new boolean[2][maxScore][maxScore][maxScore][3];
+		for (int j = 0; j < maxScore; j++) {
+			sb.append(j + ",");
+		}
+		sb.append("\n");
+		for (int i = 0; i < maxScore; i++) {
+			sb.append(i + ",");
+			for (int j = 0; j < maxScore; j++) {
+				sb.append(roll[p][i][j][k][o] ? 1 : 0);
+				sb.append(",");
+			}
+			sb.append("\n");
+		}
+		System.out.print(sb.toString());
+		System.out.println(String.format("Result of should roll given player %d, turntotal = %d, ones rolled = %d", p, k, o));
+	}
 
 	public static void main(String[] args) {
 		long startMS = System.currentTimeMillis();
@@ -404,6 +424,8 @@ i=9: pWin=0.591508 (pWin - .5 = 0.091508)
 //		solver.computeReachability(0, 0, 0, 0, 0);
 		// ... with first player komi i = 3:
 //		solver.computeReachability(3, 0, 0, 0, 0);
+		
+		solver.printRoll(1, 40, 2);	// p, k, o
 	}
 	
 

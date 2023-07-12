@@ -180,7 +180,8 @@ public class GROPolicyEvaluator {
 		// (2) The best-performing policy that takes the least code/memory, i.e. the simplest, best-performing
 		//     approximation of the optimal GROPolicy
 //		GROPolicy approx = new GROPolicyNeller1();
-		GROPolicy approx = new GROPolicyQLP1();
+//		GROPolicy approx = new GROPolicyQLP1();
+		GROPolicy approx = new GROPolicyQLP2();
 //		GROPolicy approx = new GreatRolledOne(50, 1e-14);
 		if (approx instanceof GreatRolledOne) {
 			((GreatRolledOne) approx).valueIterate(); // We could avoid this step if you call valueIterate in the constructor.
