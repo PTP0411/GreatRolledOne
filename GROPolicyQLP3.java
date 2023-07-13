@@ -1,7 +1,7 @@
 package Game;
 
 public class GROPolicyQLP3 implements GROPolicy {
-	int max_diff = 32;
+	int max_diff = 29;
 	@Override
 	/**
 	 * @param p - player (0/1)
@@ -18,9 +18,8 @@ public class GROPolicyQLP3 implements GROPolicy {
 			//when first player reach goal, continue to roll until 
 			//score difference >= threshold of difference (max_diff)
 			if (p == 0 && i + k >= 50) {
-				return score_diff < max_diff;
+				return score_diff <= max_diff;
 			}
-			
 			return true;
 		}
 		else {
@@ -28,34 +27,31 @@ public class GROPolicyQLP3 implements GROPolicy {
 			if (p == 1){ //o == 2
 				if (j > i + k) { //first player is ahead
 					if (j < 50) { //sec < first < 50
-						if (j >= 45) { //TODO: adjust
+						if (j >= 38) { //TODO: adjust
 							return true;
 						}
-						return score_diff < 12;
+						return score_diff <= 11;
 					}
 					else { 
 						return true; //first player reach 50 => keep rolling
 					}
 				}
 				else { //sec player (current) is ahead
-					return score_diff < 6;
+					return score_diff <= 8;
 				}
 			}
 			//player 1 model
 			else {
 				if (i + k >= 50) {
-					return score_diff <= 6;
+					return score_diff <= 11;
 				}
 				else {
-					if (j > i + k) { //first player is ahead
-						if (j < 50) { //sec < first < 50
-							if (j >= 44) { //TODO: adjust
+					if (j > i + k) { //second player is ahead
+						if (j < 50) { //sec < 50
+							if (j >= 38) { //TODO: adjust
 								return true;
 							}
-							return score_diff <= 2;
-						}
-						else { 
-							return true; //first player reach 50 => keep rolling
+							return score_diff <= 11;
 						}
 					}
 				}
