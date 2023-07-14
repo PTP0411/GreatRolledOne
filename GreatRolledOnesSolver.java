@@ -1,4 +1,6 @@
 import java.awt.Color;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Formatter;
 
 /**
@@ -360,8 +362,6 @@ public class GreatRolledOnesSolver implements GROPolicy {
 	public void printRoll(int p, int k, int o) {
 		// print by p, k, o
 		StringBuilder sb = new StringBuilder(" ");
-//		pWin = new double[2][maxScore][maxScore][maxScore][3]; // indexed by player, score, opponent score, turn total, ones
-//		roll = new boolean[2][maxScore][maxScore][maxScore][3];
 		for (int j = 0; j < maxScore; j++) {
 			sb.append(j + ",");
 		}
@@ -377,7 +377,49 @@ public class GreatRolledOnesSolver implements GROPolicy {
 		System.out.print(sb.toString());
 		System.out.println(String.format("Result of should roll given player %d, turntotal = %d, ones rolled = %d", p, k, o));
 	}
-
+	
+	public void getMinHoldValues(boolean verbose) {
+		for (int p = 0; p < 2; p++) {
+			for (int o = 0; o < 3; o++) {
+				System.out.printf("\nPlayer %d, %d Ones:\n", p, o);
+				StringBuilder sb = new StringBuilder(" ");
+				for (int j = 0; j < maxScore; j++) 
+					sb.append(j + ",");
+				sb.append("\n");
+				for (int i = 0; i < maxScore; i++) {
+					sb.append(i + ",");
+					for (int j = 0; j < maxScore; j++) {
+						int k = 0;
+						while (k + 1 < maxScore && roll[p][i][j][k][o])
+							k++;
+						sb.append(k + ",");
+					}
+					sb.append("\n");
+				}
+				if (verbose)
+					System.out.println("[" + sb.toString() + "]");
+				saveTxtFile(String.format("./MinHoldVals/p%d-o%d.txt", p, o), sb.toString().strip());
+			}
+		}
+	}
+	
+	public void saveTxtFile(String filename, String text) {
+		try {
+			File file = new File(filename);
+			if (!file.exists()) {
+				file.createNewFile();
+				System.out.println("File created: " + file.getName());
+			}
+			FileWriter myWriter = new FileWriter(filename);
+			myWriter.write(text);
+			myWriter.close();
+			System.out.println("Successfully wrote to the file.");
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void main(String[] args) {
 		long startMS = System.currentTimeMillis();
 		GreatRolledOnesSolver solver = new GreatRolledOnesSolver(); // = new GreatRolledOnesSolver(5, 50, 1e-9); // = new GreatRolledOnesSolver();
@@ -415,7 +457,7 @@ i=9: pWin=0.591508 (pWin - .5 = 0.091508)
 
 		//		System.out.println(solver.checkForInclusion()); // true
 
-		solver.printMinHoldValues();
+//		solver.printMinHoldValues();
 //		solver.printTurnStartWinProbs();
 		//		solver.generateVRML();
 		
@@ -425,7 +467,8 @@ i=9: pWin=0.591508 (pWin - .5 = 0.091508)
 		// ... with first player komi i = 3:
 //		solver.computeReachability(3, 0, 0, 0, 0);
 		
-		solver.printRoll(1, 40, 2);	// p, k, o
+//		solver.printRoll(1, 40, 2);	// p, k, o
+		solver.getMinHoldValues(false);
 	}
 	
 

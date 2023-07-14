@@ -1,5 +1,15 @@
 # GrearRolledOne backlog
 
+## July 13 2023 (whole group)
+* Meeting minute:
+    1. Quan shared a policy that was essentially roll to win with 4 or 5 dice, and roll to 5 points with 3 dice (worse -4.02% than optimal).
+    1. Using minimum hold values and visualizations of the roll/hold surface, we partially crafted a human-playable policy to be continued by all independently.
+        * Post meeting, without even having touched the ones = 1 cases yet, Prof. Neller got this result for a policy slightly modified from our meeting:
+        * Average win rate difference: -0.03198239880309944 (worse -3.20% than optimal)
+        * This includes treating the ones = 2 case as we'd discussed.  So our new goal for next week is to get different magnitude under 0.03 for the average win rate difference.
+* Next task (for all): Experiment further with human-playable approximately-optimal play policies to get within 3% of the optimal win rate.
+
+
 ## July 8 2023 (small group)
 * New idea for GRO Policies:
     1. policy 1:
