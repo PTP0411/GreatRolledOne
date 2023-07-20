@@ -6,19 +6,18 @@ public class GROPolicyQLP1 implements GROPolicy {
 		if (p == 0) {
 			// Player 1 model
 			if (o == 0) {
-				return true;
+				int holdAt = Math.max(50 - i, 29 - i + j);
+				return k < holdAt;
 			}
-			else if (o == 1) {
-				return true;
+			if (p ==0 && i + k >= 50) {
+				return false;
 			}
-			else {
-				return k < 5;
-			}
+			return o < 2;
 		}
 		else {
 			// Player 2 model
 			if (j >= 50) {
-				return i+k <= j;
+				return i + k <= j;
 			}
 			if (o == 0) {
 				return true;
