@@ -181,9 +181,11 @@ public class GROPolicyEvaluator {
 		//     approximation of the optimal GROPolicy
 //		GROPolicy approx = new GROPolicyNeller1();
 //		GROPolicy approx = new GROPolicyQLP1();
+//		GROPolicy approx = new GROPolicyQLP1_1();
+		GROPolicy approx = new GROPolicyQLP1_1_1();
 //		GROPolicy approx = new GROPolicyQLP2();
 //		GROPolicy approx = new GROPolicyQLP3();
-		GROPolicy approx = new GROPolicyQLP4();
+//		GROPolicy approx = new GROPolicyQLP4();
 //		GROPolicy approx = new GreatRolledOne(50, 1e-14);
 		if (approx instanceof GreatRolledOne) {
 			((GreatRolledOne) approx).valueIterate(); // We could avoid this step if you call valueIterate in the constructor.

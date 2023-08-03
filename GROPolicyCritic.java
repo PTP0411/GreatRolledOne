@@ -205,8 +205,9 @@ public class GROPolicyCritic {
 		//     approximation of the optimal GROPolicy
 //		GROPolicy approx = new GreatRolledOne(50, 1e-14);
 //		((GreatRolledOne) approx).valueIterate();
-		GROPolicy approx = new GROPolicyRollWith4Or5();
+//		GROPolicy approx = new GROPolicyRollWith4Or5();
 //		GROPolicy approx = new GROPolicyNeller1();
+		GROPolicy approx = new GROPolicyQLP1();
 		
 		GROPolicyCritic critic = new GROPolicyCritic(approx);
 		
@@ -217,6 +218,6 @@ public class GROPolicyCritic {
 		System.out.printf("Approx. policy wins: %8d (%5.2f%%)\n", numWins[1], 100.0 * numWins[1] / NUM_GAMES);
 		
 		// Highlight nonterminal states where experienced error is in above the threshold percentile.
-		critic.textProfile(PERCENTILE); 
+//		critic.textProfile(PERCENTILE); 
 	}
 }

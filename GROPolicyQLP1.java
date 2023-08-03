@@ -1,6 +1,6 @@
 
 public class GROPolicyQLP1 implements GROPolicy {
-
+	final int GOAL = 50;
 	@Override
 	public boolean willRoll(int p, int i, int j, int k, int o) {
 		if (p == 0) {
@@ -17,15 +17,22 @@ public class GROPolicyQLP1 implements GROPolicy {
 		}
 		else {
 			// Player 2 model
-			if (j >= 50) {
+			// p2 must exceed p1
+			if (j >= GOAL) {
 				return i+k <= j;
 			}
+			// p2 can hold and win
+			if (i + k >= GOAL) {
+				return false;
+			}
+			// must roll when we have <2 ones rolled
 			if (o == 0) {
 				return true;
 			}
 			else if (o == 1) {
 				return true;
 			}
+			// roll 5 or more if we have 2 ones set aside
 			else {
 				return k < 5;
 			}
@@ -39,5 +46,7 @@ Policy 2 second player win rate: 0.5413064348857701
 Policy 1 average win rate: 0.5201231702877893
 Policy 2 average win rate: 0.4798768297122107
 Average win rate difference: -0.04024634057557863 (worse: ~ -4.02% gap)
+
+NOTE: j - i can contribute in decision making, simple calculation
 	 */
 }
